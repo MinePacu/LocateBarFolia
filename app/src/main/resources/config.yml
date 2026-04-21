@@ -4,3 +4,7 @@ movement-threshold-blocks: 0.5
 ignore-spectators: true
 # Safe vanish integration is plugin-specific, so this remains a reserved flag for future hooks.
 ignore-vanished: false
+bedrock-fallback:
+  enabled: true
+  actionbar-interval-ticks: 20
+  max-targets: 4

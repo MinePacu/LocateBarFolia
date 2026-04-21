@@ -5,6 +5,8 @@ import com.example.locatebarfolia.config.LocateBarConfig;
 import com.example.locatebarfolia.listener.PlayerConnectionListener;
 import com.example.locatebarfolia.listener.PlayerMovementListener;
 import com.example.locatebarfolia.listener.PlayerWorldListener;
+import com.example.locatebarfolia.service.BedrockActionBarRenderer;
+import com.example.locatebarfolia.service.BedrockCompatibility;
 import com.example.locatebarfolia.service.LocateBarService;
 import com.example.locatebarfolia.service.PlayerStateRegistry;
 import com.example.locatebarfolia.service.VisibilityEvaluator;
@@ -28,7 +30,9 @@ public final class LocateBarPlugin extends JavaPlugin {
             this.pluginConfig,
             this.playerStateRegistry,
             new VisibilityEvaluator(),
-            new WaypointPacketSender()
+            new WaypointPacketSender(),
+            new BedrockCompatibility(this),
+            new BedrockActionBarRenderer()
         );
 
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this.locateBarService), this);
@@ -57,6 +61,15 @@ public final class LocateBarPlugin extends JavaPlugin {
     public LocateBarConfig reloadPluginConfig() {
         reloadConfig();
         this.pluginConfig = LocateBarConfig.from(getConfig());
+        this.locateBarService.reload(this.pluginConfig);
+        return this.pluginConfig;
+    }
+
+    public LocateBarConfig updateScanRadius(final double scanRadius) {
+        final double sanitizedRadius = LocateBarConfig.sanitizeScanRadius(scanRadius);
+        getConfig().set("scan-radius", sanitizedRadius);
+        saveConfig();
+        this.pluginConfig = this.pluginConfig.withScanRadius(sanitizedRadius);
         this.locateBarService.reload(this.pluginConfig);
         return this.pluginConfig;
     }

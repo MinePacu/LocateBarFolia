@@ -3,10 +3,13 @@ version: 1.0.0-SNAPSHOT
 main: com.example.locatebarfolia.LocateBarPlugin
 api-version: "1.21"
 folia-supported: true
+softdepend:
+  - floodgate
+  - Geyser-Spigot
 commands:
   locatebar:
-    description: Toggle or reload the LocateBarFolia display.
-    usage: /locatebar <on|off|toggle|reload>
+    description: Toggle, resize, or reload the LocateBarFolia display.
+    usage: /locatebar <on|off|toggle|radius|reload>
 permissions:
   locatebar.use:
     description: Allows players to use the LocateBarFolia toggle command.

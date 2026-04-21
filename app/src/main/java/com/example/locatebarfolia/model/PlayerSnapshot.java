@@ -10,6 +10,8 @@ public record PlayerSnapshot(
     double x,
     double y,
     double z,
+    float yaw,
+    String name,
     GameMode gameMode,
     boolean locatorEnabled
 ) {
@@ -22,6 +24,8 @@ public record PlayerSnapshot(
             location.getX(),
             location.getY(),
             location.getZ(),
+            location.getYaw(),
+            player.getName(),
             player.getGameMode(),
             locatorEnabled
         );

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VisibilityEvaluatorTest {
     private static final UUID WORLD = UUID.randomUUID();
-    private static final LocateBarConfig CONFIG = new LocateBarConfig(true, 48.0D, 2304.0D, 0.5D, true, false);
+    private static final LocateBarConfig CONFIG = new LocateBarConfig(true, 48.0D, 2304.0D, 0.5D, true, false, true, 20L, 4);
     private final VisibilityEvaluator evaluator = new VisibilityEvaluator();
 
     @Test
@@ -46,7 +46,7 @@ class VisibilityEvaluatorTest {
     void rejectsSpectatorsWhenConfigured() {
         assertFalse(this.evaluator.shouldTrack(
             snapshot(UUID.randomUUID(), WORLD, 0.0D, 64.0D, 0.0D, true),
-            new PlayerSnapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, GameMode.SPECTATOR, true),
+            new PlayerSnapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, 0.0F, "Target", GameMode.SPECTATOR, true),
             CONFIG
         ));
     }
@@ -59,6 +59,6 @@ class VisibilityEvaluatorTest {
         final double z,
         final boolean enabled
     ) {
-        return new PlayerSnapshot(playerId, worldId, x, y, z, GameMode.SURVIVAL, enabled);
+        return new PlayerSnapshot(playerId, worldId, x, y, z, 0.0F, "Target", GameMode.SURVIVAL, enabled);
     }
 }

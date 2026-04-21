@@ -1,6 +1,0 @@
-enabled-by-default: true
-scan-radius: 48.0
-movement-threshold-blocks: 0.5
-ignore-spectators: true
-# Safe vanish integration is plugin-specific, so this remains a reserved flag for future hooks.
-ignore-vanished: false

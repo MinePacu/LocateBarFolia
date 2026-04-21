@@ -1,6 +1,7 @@
 package com.example.locatebarfolia.service;
 
 import com.example.locatebarfolia.model.PlayerSnapshot;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +43,8 @@ public final class PlayerStateRegistry {
 
     public static final class PlayerRuntimeState {
         private volatile boolean enabled = true;
+        private volatile boolean bedrockClient;
+        private volatile ScheduledTask bedrockActionBarTask;
         private final Set<UUID> visibleTargetIds = ConcurrentHashMap.newKeySet();
 
         public boolean isEnabled() {
@@ -50,6 +53,22 @@ public final class PlayerStateRegistry {
 
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
+        }
+
+        public boolean isBedrockClient() {
+            return this.bedrockClient;
+        }
+
+        public void setBedrockClient(final boolean bedrockClient) {
+            this.bedrockClient = bedrockClient;
+        }
+
+        public ScheduledTask bedrockActionBarTask() {
+            return this.bedrockActionBarTask;
+        }
+
+        public void setBedrockActionBarTask(final ScheduledTask bedrockActionBarTask) {
+            this.bedrockActionBarTask = bedrockActionBarTask;
         }
 
         public Set<UUID> visibleTargetIds() {
