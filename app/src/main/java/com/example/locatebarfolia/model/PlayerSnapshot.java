@@ -2,6 +2,7 @@ package com.example.locatebarfolia.model;
 
 import java.util.UUID;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public record PlayerSnapshot(
@@ -16,7 +17,10 @@ public record PlayerSnapshot(
     boolean locatorEnabled
 ) {
     public static PlayerSnapshot capture(final Player player, final boolean locatorEnabled) {
-        final var location = player.getLocation();
+        return capture(player, player.getLocation(), locatorEnabled);
+    }
+
+    public static PlayerSnapshot capture(final Player player, final Location location, final boolean locatorEnabled) {
         final var world = location.getWorld();
         return new PlayerSnapshot(
             player.getUniqueId(),

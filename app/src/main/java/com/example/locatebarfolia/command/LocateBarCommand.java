@@ -4,7 +4,8 @@ import com.example.locatebarfolia.LocateBarPlugin;
 import com.example.locatebarfolia.service.LocateBarService;
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,39 +27,40 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
         if (args.length == 0) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatColor.RED + "Console must specify reload.");
+                sendError(sender, "Console must specify reload.");
                 return true;
             }
             if (!sender.hasPermission("locatebar.use")) {
-                sender.sendMessage(ChatColor.RED + "You do not have permission to use LocateBarFolia.");
+                sendError(sender, "You do not have permission to use LocateBarFolia.");
                 return true;
             }
 
             this.locateBarService.toggle(player);
-            sender.sendMessage(ChatColor.YELLOW + "LocateBar participation is now " + stateWord(this.locateBarService.isEnabledFor(player)) + ChatColor.YELLOW + ".");
+            sendParticipationState(sender, this.locateBarService.isEnabledFor(player));
             return true;
         }
 
         final String subcommand = args[0].toLowerCase(java.util.Locale.ROOT);
         if ("reload".equals(subcommand)) {
             if (!sender.hasPermission("locatebar.admin")) {
-                sender.sendMessage(ChatColor.RED + "You do not have permission to reload LocateBarFolia.");
+                sendError(sender, "You do not have permission to reload LocateBarFolia.");
                 return true;
             }
 
             this.plugin.reloadPluginConfig();
-            sender.sendMessage(ChatColor.GREEN + "LocateBarFolia configuration reloaded.");
+            sendSuccess(sender, "LocateBarFolia configuration reloaded.");
             return true;
         }
 
         if ("radius".equals(subcommand)) {
             if (!sender.hasPermission("locatebar.admin")) {
-                sender.sendMessage(ChatColor.RED + "You do not have permission to change LocateBarFolia radius.");
+                sendError(sender, "You do not have permission to change LocateBarFolia radius.");
                 return true;
             }
 
             if (args.length == 1) {
-                sender.sendMessage(ChatColor.YELLOW + "Current LocateBar radius: " + ChatColor.GREEN + formatRadius(this.locateBarService.scanRadius()));
+                sender.sendMessage(Component.text("Current LocateBar radius: ", NamedTextColor.YELLOW)
+                    .append(Component.text(formatRadius(this.locateBarService.scanRadius()), NamedTextColor.GREEN)));
                 return true;
             }
 
@@ -66,21 +68,21 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
             try {
                 radius = Double.parseDouble(args[1]);
             } catch (final NumberFormatException ignored) {
-                sender.sendMessage(ChatColor.RED + "Radius must be a number.");
+                sendError(sender, "Radius must be a number.");
                 return true;
             }
 
             final var config = this.plugin.updateScanRadius(radius);
-            sender.sendMessage(ChatColor.GREEN + "LocateBar radius updated to " + formatRadius(config.scanRadius()) + " blocks.");
+            sendSuccess(sender, "LocateBar radius updated to " + formatRadius(config.scanRadius()) + " blocks.");
             return true;
         }
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can use that subcommand.");
+            sendError(sender, "Only players can use that subcommand.");
             return true;
         }
         if (!sender.hasPermission("locatebar.use")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use LocateBarFolia.");
+            sendError(sender, "You do not have permission to use LocateBarFolia.");
             return true;
         }
 
@@ -89,12 +91,12 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
             case "off" -> this.locateBarService.setEnabled(player, false);
             case "toggle" -> this.locateBarService.toggle(player);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Usage: /" + label + " <on|off|toggle|radius|reload>");
+                sendError(sender, "Usage: /" + label + " <on|off|toggle|radius|reload>");
                 return true;
             }
         }
 
-        sender.sendMessage(ChatColor.YELLOW + "LocateBar participation is now " + stateWord(this.locateBarService.isEnabledFor(player)) + ChatColor.YELLOW + ".");
+        sendParticipationState(sender, this.locateBarService.isEnabledFor(player));
         return true;
     }
 
@@ -117,8 +119,18 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
         return matches;
     }
 
-    private String stateWord(final boolean enabled) {
-        return enabled ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled";
+    private void sendParticipationState(final CommandSender sender, final boolean enabled) {
+        sender.sendMessage(Component.text("LocateBar participation is now ", NamedTextColor.YELLOW)
+            .append(Component.text(enabled ? "enabled" : "disabled", enabled ? NamedTextColor.GREEN : NamedTextColor.RED))
+            .append(Component.text(".", NamedTextColor.YELLOW)));
+    }
+
+    private void sendError(final CommandSender sender, final String message) {
+        sender.sendMessage(Component.text(message, NamedTextColor.RED));
+    }
+
+    private void sendSuccess(final CommandSender sender, final String message) {
+        sender.sendMessage(Component.text(message, NamedTextColor.GREEN));
     }
 
     private String formatRadius(final double radius) {

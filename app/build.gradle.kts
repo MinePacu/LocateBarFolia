@@ -8,7 +8,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0"
 
 base {
     archivesName.set("LocateBarFolia")

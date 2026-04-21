@@ -29,10 +29,6 @@ public final class PlayerStateRegistry {
         return this.snapshots.get(playerId);
     }
 
-    public void removeSnapshot(final UUID playerId) {
-        this.snapshots.remove(playerId);
-    }
-
     public Collection<PlayerSnapshot> snapshots() {
         return this.snapshots.values();
     }

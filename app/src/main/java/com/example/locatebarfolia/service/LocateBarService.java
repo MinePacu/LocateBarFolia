@@ -50,7 +50,6 @@ public final class LocateBarService {
         this.config = newConfig;
         for (final Player player : Bukkit.getOnlinePlayers()) {
             final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
-            state.setEnabled(state.isEnabled());
             state.setBedrockClient(isBedrockFallbackRecipient(player));
             this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
             cancelBedrockActionBarTask(state);
@@ -147,6 +146,13 @@ public final class LocateBarService {
     public void handleStateRefresh(final Player player) {
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
         this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+        syncRecipient(player, true);
+        refreshTargetForAllRecipients(player.getUniqueId());
+    }
+
+    public void handleStateRefresh(final Player player, final Location location) {
+        final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
+        this.registry.updateSnapshot(PlayerSnapshot.capture(player, location, state.isEnabled()));
         syncRecipient(player, true);
         refreshTargetForAllRecipients(player.getUniqueId());
     }
