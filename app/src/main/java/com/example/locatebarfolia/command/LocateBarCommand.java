@@ -30,13 +30,8 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
                 sendError(sender, "Console must specify reload.");
                 return true;
             }
-            if (!sender.hasPermission("locatebar.use")) {
-                sendError(sender, "You do not have permission to use LocateBarFolia.");
-                return true;
-            }
 
-            this.locateBarService.toggle(player);
-            sendParticipationState(sender, this.locateBarService.isEnabledFor(player));
+            this.locateBarService.toggle(player, enabled -> sendParticipationState(player, enabled));
             return true;
         }
 
@@ -81,22 +76,17 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
             sendError(sender, "Only players can use that subcommand.");
             return true;
         }
-        if (!sender.hasPermission("locatebar.use")) {
-            sendError(sender, "You do not have permission to use LocateBarFolia.");
-            return true;
-        }
 
         switch (subcommand) {
-            case "on" -> this.locateBarService.setEnabled(player, true);
-            case "off" -> this.locateBarService.setEnabled(player, false);
-            case "toggle" -> this.locateBarService.toggle(player);
+            case "on" -> this.locateBarService.setEnabled(player, true, enabled -> sendParticipationState(player, enabled));
+            case "off" -> this.locateBarService.setEnabled(player, false, enabled -> sendParticipationState(player, enabled));
+            case "toggle" -> this.locateBarService.toggle(player, enabled -> sendParticipationState(player, enabled));
             default -> {
                 sendError(sender, "Usage: /" + label + " <on|off|toggle|radius|reload>");
                 return true;
             }
         }
 
-        sendParticipationState(sender, this.locateBarService.isEnabledFor(player));
         return true;
     }
 
@@ -120,7 +110,7 @@ public final class LocateBarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendParticipationState(final CommandSender sender, final boolean enabled) {
-        sender.sendMessage(Component.text("LocateBar participation is now ", NamedTextColor.YELLOW)
+        sender.sendMessage(Component.text("LocateBar display is now ", NamedTextColor.YELLOW)
             .append(Component.text(enabled ? "enabled" : "disabled", enabled ? NamedTextColor.GREEN : NamedTextColor.RED))
             .append(Component.text(".", NamedTextColor.YELLOW)));
     }

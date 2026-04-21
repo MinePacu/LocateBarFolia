@@ -8,7 +8,7 @@ LocateBarFolia is a Folia-compatible Paper plugin that shows nearby players thro
 
 - Shows nearby enabled players as locator waypoints.
 - Supports Folia region scheduling.
-- Stores each player's enabled or disabled preference.
+- Stores each player's display enabled or disabled preference.
 - Filters targets by world, radius, spectator mode, and optional vanish visibility.
 - Provides a Floodgate-based Bedrock fallback through the action bar.
 - Supports live configuration reloads and scan radius changes.
@@ -29,13 +29,13 @@ LocateBarFolia is a Folia-compatible Paper plugin that shows nearby players thro
 The plugin jar is generated at:
 
 ```text
-app/build/libs/LocateBarFolia-1.0.0.jar
+app/build/libs/LocateBarFolia-1.0.1.jar
 ```
 
 ## Installation
 
 1. Build the plugin or download the jar.
-2. Place `LocateBarFolia-1.0.0.jar` in your server's `plugins` directory.
+2. Place `LocateBarFolia-1.0.1.jar` in your server's `plugins` directory.
 3. Restart the server.
 4. Edit `plugins/LocateBarFolia/config.yml` if needed.
 5. Run `/locatebar reload` after changing the config.
@@ -44,10 +44,10 @@ app/build/libs/LocateBarFolia-1.0.0.jar
 
 | Command | Permission | Description |
 | --- | --- | --- |
-| `/locatebar` | `locatebar.use` | Toggles your LocateBar participation. |
-| `/locatebar on` | `locatebar.use` | Enables your participation. |
-| `/locatebar off` | `locatebar.use` | Disables your participation. |
-| `/locatebar toggle` | `locatebar.use` | Toggles your participation. |
+| `/locatebar` | none | Toggles the LocateBar display on your own screen. |
+| `/locatebar on` | none | Enables the LocateBar display on your own screen. |
+| `/locatebar off` | none | Disables the LocateBar display on your own screen. |
+| `/locatebar toggle` | none | Toggles the LocateBar display on your own screen. |
 | `/locatebar radius` | `locatebar.admin` | Shows the current scan radius. |
 | `/locatebar radius <blocks>` | `locatebar.admin` | Updates and saves the scan radius. Values below 8 are clamped to 8. |
 | `/locatebar reload` | `locatebar.admin` | Reloads the plugin configuration. |
@@ -56,7 +56,7 @@ app/build/libs/LocateBarFolia-1.0.0.jar
 
 | Permission | Default | Description |
 | --- | --- | --- |
-| `locatebar.use` | `true` | Allows players to use participation commands. |
+| `locatebar.use` | `true` | Reserved for compatibility. Player self-toggle commands are available to all players. |
 | `locatebar.admin` | `op` | Allows radius changes and configuration reloads. |
 
 ## Configuration
@@ -75,7 +75,7 @@ bedrock-fallback:
 
 | Option | Description |
 | --- | --- |
-| `enabled-by-default` | Whether players participate by default when no saved preference exists. |
+| `enabled-by-default` | Whether players see the LocateBar display by default when no saved preference exists. |
 | `scan-radius` | Maximum target detection radius in blocks. Invalid values reset to `48.0`; values below `8.0` are clamped. |
 | `movement-threshold-blocks` | Minimum movement needed before refreshing target visibility. Values below `0.05` are clamped. |
 | `ignore-spectators` | Excludes spectators from being recipients or targets. |

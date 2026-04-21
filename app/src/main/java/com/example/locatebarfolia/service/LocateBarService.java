@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -49,18 +50,26 @@ public final class LocateBarService {
     public void reload(final LocateBarConfig newConfig) {
         this.config = newConfig;
         for (final Player player : Bukkit.getOnlinePlayers()) {
-            final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
-            state.setBedrockClient(isBedrockFallbackRecipient(player));
-            this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
-            cancelBedrockActionBarTask(state);
-            syncBedrockActionBarTask(player, state);
-        }
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            syncRecipient(player, true);
+            player.getScheduler().run(this.plugin, scheduledTask -> {
+                final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
+                state.setBedrockClient(isBedrockFallbackRecipient(player));
+                this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+                cancelBedrockActionBarTask(state);
+                syncBedrockActionBarTask(player, state);
+                syncRecipient(player, true);
+            }, null);
         }
     }
 
     public void track(final Player player) {
+        player.getScheduler().runDelayed(this.plugin, scheduledTask -> trackOnPlayerScheduler(player), null, 1L);
+    }
+
+    private void trackOnPlayerScheduler(final Player player) {
+        if (!player.isOnline()) {
+            return;
+        }
+
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
         state.setEnabled(loadEnabled(player));
         state.setBedrockClient(isBedrockFallbackRecipient(player));
@@ -94,6 +103,18 @@ public final class LocateBarService {
     }
 
     public void setEnabled(final Player player, final boolean enabled) {
+        setEnabled(player, enabled, ignored -> {
+        });
+    }
+
+    public void setEnabled(final Player player, final boolean enabled, final Consumer<Boolean> completion) {
+        player.getScheduler().run(this.plugin, scheduledTask -> {
+            applyEnabled(player, enabled);
+            completion.accept(enabled);
+        }, null);
+    }
+
+    private void applyEnabled(final Player player, final boolean enabled) {
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
         state.setEnabled(enabled);
         state.setBedrockClient(isBedrockFallbackRecipient(player));
@@ -103,7 +124,6 @@ public final class LocateBarService {
 
         if (!enabled) {
             clearRecipientWaypoints(player);
-            removeTargetFromAllRecipients(player.getUniqueId());
             return;
         }
 
@@ -112,7 +132,16 @@ public final class LocateBarService {
     }
 
     public void toggle(final Player player) {
-        setEnabled(player, !isEnabledFor(player));
+        toggle(player, ignored -> {
+        });
+    }
+
+    public void toggle(final Player player, final Consumer<Boolean> completion) {
+        player.getScheduler().run(this.plugin, scheduledTask -> {
+            final boolean enabled = !this.registry.stateFor(player.getUniqueId()).isEnabled();
+            applyEnabled(player, enabled);
+            completion.accept(enabled);
+        }, null);
     }
 
     public double scanRadius() {
@@ -135,12 +164,11 @@ public final class LocateBarService {
 
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
         this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
-        if (!state.isEnabled()) {
-            return;
-        }
 
         refreshTargetForAllRecipients(player.getUniqueId());
-        syncRecipient(player, false);
+        if (state.isEnabled()) {
+            syncRecipient(player, false);
+        }
     }
 
     public void handleStateRefresh(final Player player) {
@@ -188,11 +216,6 @@ public final class LocateBarService {
     }
 
     private void refreshTargetForAllRecipients(final UUID targetId) {
-        final PlayerSnapshot targetSnapshot = this.registry.snapshotFor(targetId);
-        if (targetSnapshot == null) {
-            return;
-        }
-
         for (final Player recipient : Bukkit.getOnlinePlayers()) {
             if (recipient.getUniqueId().equals(targetId)) {
                 continue;
@@ -201,6 +224,7 @@ public final class LocateBarService {
             recipient.getScheduler().run(this.plugin, scheduledTask -> {
                 final PlayerSnapshot recipientSnapshot = this.registry.snapshotFor(recipient.getUniqueId());
                 final PlayerStateRegistry.PlayerRuntimeState recipientState = this.registry.stateFor(recipient.getUniqueId());
+                final PlayerSnapshot targetSnapshot = this.registry.snapshotFor(targetId);
                 syncRecipientTarget(recipient, recipientSnapshot, recipientState, targetSnapshot, false);
             }, null);
         }
@@ -219,6 +243,13 @@ public final class LocateBarService {
 
         final UUID targetId = targetSnapshot.playerId();
         final Set<UUID> visibleTargets = recipientState.visibleTargetIds();
+        if (!recipientState.isEnabled()) {
+            if (visibleTargets.remove(targetId) && !recipientState.isBedrockClient()) {
+                this.packetSender.removeWaypoint(recipient, targetId);
+            }
+            return;
+        }
+
         final boolean shouldTrack = this.visibilityEvaluator.shouldTrack(recipientSnapshot, targetSnapshot, this.config)
             && isRecipientAllowedToSee(recipient, targetId);
 

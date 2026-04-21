@@ -34,8 +34,17 @@ class VisibilityEvaluatorTest {
     }
 
     @Test
-    void rejectsDisabledTargets() {
+    void rejectsDisabledRecipients() {
         assertFalse(this.evaluator.shouldTrack(
+            snapshot(UUID.randomUUID(), WORLD, 0.0D, 64.0D, 0.0D, false),
+            snapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, true),
+            CONFIG
+        ));
+    }
+
+    @Test
+    void tracksDisabledTargetsForEnabledRecipients() {
+        assertTrue(this.evaluator.shouldTrack(
             snapshot(UUID.randomUUID(), WORLD, 0.0D, 64.0D, 0.0D, true),
             snapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, false),
             CONFIG

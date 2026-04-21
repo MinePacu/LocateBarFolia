@@ -13,7 +13,7 @@ public final class VisibilityEvaluator {
         if (recipient == null || target == null) {
             return false;
         }
-        if (!recipient.locatorEnabled() || !target.locatorEnabled()) {
+        if (!recipient.locatorEnabled()) {
             return false;
         }
         if (recipient.playerId().equals(target.playerId())) {
