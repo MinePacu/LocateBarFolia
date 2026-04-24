@@ -17,7 +17,7 @@ public final class WaypointPacketSender {
         final ServerPlayer serverPlayer = ((CraftPlayer) recipient).getHandle();
         final Waypoint.Icon icon = new Waypoint.Icon();
         icon.style = WaypointStyleAssets.DEFAULT;
-        icon.color = Optional.of(0xFFFFFF);
+        icon.color = Optional.of(snapshot.waypointColorRgb());
 
         final BlockPos blockPos = new BlockPos(
             (int) Math.floor(snapshot.x()),

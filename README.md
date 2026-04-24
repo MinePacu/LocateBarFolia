@@ -29,13 +29,13 @@ LocateBarFolia is a Folia-compatible Paper plugin that shows nearby players thro
 The plugin jar is generated at:
 
 ```text
-app/build/libs/LocateBarFolia-1.0.1.jar
+app/build/libs/LocateBarFolia-1.1.0.jar
 ```
 
 ## Installation
 
 1. Build the plugin or download the jar.
-2. Place `LocateBarFolia-1.0.1.jar` in your server's `plugins` directory.
+2. Place `LocateBarFolia-1.1.0.jar` in your server's `plugins` directory.
 3. Restart the server.
 4. Edit `plugins/LocateBarFolia/config.yml` if needed.
 5. Run `/locatebar reload` after changing the config.

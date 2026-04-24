@@ -6,3 +6,6 @@ build
 
 # Ignore IDE/compiler output directory
 app/bin
+
+# Ignore macOS Finder metadata
+.DS_Store

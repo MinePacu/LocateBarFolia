@@ -36,7 +36,18 @@ class BedrockActionBarRendererTest {
         );
     }
 
+    @Test
+    void rendersKoreanPrefixForKoreanRecipients() {
+        final PlayerSnapshot viewer = snapshot("Viewer", 0.0D, 0.0D, 0.0F, "ko_kr");
+
+        assertEquals("추적: F Alex 10m", this.renderer.render(viewer, List.of(snapshot("Alex", 0.0D, 10.0D, 0.0F)), 1));
+    }
+
     private static PlayerSnapshot snapshot(final String name, final double x, final double z, final float yaw) {
-        return new PlayerSnapshot(UUID.randomUUID(), WORLD, x, 64.0D, z, yaw, name, GameMode.SURVIVAL, true);
+        return snapshot(name, x, z, yaw, "en_us");
+    }
+
+    private static PlayerSnapshot snapshot(final String name, final double x, final double z, final float yaw, final String localeTag) {
+        return new PlayerSnapshot(UUID.randomUUID(), WORLD, x, 64.0D, z, yaw, localeTag, 0xFFFFFF, name, GameMode.SURVIVAL, true);
     }
 }

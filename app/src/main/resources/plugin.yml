@@ -1,5 +1,5 @@
 name: LocateBarFolia
-version: 1.0.1
+version: 1.1.0
 main: com.example.locatebarfolia.LocateBarPlugin
 api-version: "1.21"
 folia-supported: true
@@ -8,12 +8,12 @@ softdepend:
   - Geyser-Spigot
 commands:
   locatebar:
-    description: Toggle, resize, or reload the LocateBarFolia display.
-    usage: /locatebar <on|off|toggle|radius|reload>
+    description: LocateBarFolia 표시를 켜고 끄거나, 색상과 반경을 조정하고, 설정을 다시 불러옵니다.
+    usage: /locatebar <on|off|toggle|color|radius|reload>
 permissions:
   locatebar.use:
-    description: Reserved for compatibility. Player self-toggle commands are available to all players.
+    description: 호환성용 예약 권한입니다. 플레이어 자신의 토글 명령은 모두 사용할 수 있습니다.
     default: true
   locatebar.admin:
-    description: Allows reloading LocateBarFolia.
+    description: LocateBarFolia 설정 다시 불러오기와 반경 변경을 허용합니다.
     default: op

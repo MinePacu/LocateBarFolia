@@ -18,6 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class LocateBarService {
     private static final String ENABLED_KEY_NAME = "enabled";
+    private static final String WAYPOINT_COLOR_KEY_NAME = "waypoint_color";
 
     private final JavaPlugin plugin;
     private final PlayerStateRegistry registry;
@@ -26,6 +27,7 @@ public final class LocateBarService {
     private final BedrockCompatibility bedrockCompatibility;
     private final BedrockActionBarRenderer bedrockActionBarRenderer;
     private final NamespacedKey enabledKey;
+    private final NamespacedKey waypointColorKey;
     private volatile LocateBarConfig config;
 
     public LocateBarService(
@@ -45,6 +47,7 @@ public final class LocateBarService {
         this.bedrockCompatibility = bedrockCompatibility;
         this.bedrockActionBarRenderer = bedrockActionBarRenderer;
         this.enabledKey = new NamespacedKey(plugin, ENABLED_KEY_NAME);
+        this.waypointColorKey = new NamespacedKey(plugin, WAYPOINT_COLOR_KEY_NAME);
     }
 
     public void reload(final LocateBarConfig newConfig) {
@@ -53,7 +56,7 @@ public final class LocateBarService {
             player.getScheduler().run(this.plugin, scheduledTask -> {
                 final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
                 state.setBedrockClient(isBedrockFallbackRecipient(player));
-                this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+                this.registry.updateSnapshot(captureSnapshot(player, state.isEnabled()));
                 cancelBedrockActionBarTask(state);
                 syncBedrockActionBarTask(player, state);
                 syncRecipient(player, true);
@@ -74,7 +77,7 @@ public final class LocateBarService {
         state.setEnabled(loadEnabled(player));
         state.setBedrockClient(isBedrockFallbackRecipient(player));
         state.visibleTargetIds().clear();
-        this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+        this.registry.updateSnapshot(captureSnapshot(player, state.isEnabled()));
         syncBedrockActionBarTask(player, state);
         syncRecipient(player, true);
         refreshTargetForAllRecipients(player.getUniqueId());
@@ -119,7 +122,7 @@ public final class LocateBarService {
         state.setEnabled(enabled);
         state.setBedrockClient(isBedrockFallbackRecipient(player));
         saveEnabled(player, enabled);
-        this.registry.updateSnapshot(PlayerSnapshot.capture(player, enabled));
+        this.registry.updateSnapshot(captureSnapshot(player, enabled));
         syncBedrockActionBarTask(player, state);
 
         if (!enabled) {
@@ -148,6 +151,36 @@ public final class LocateBarService {
         return this.config.scanRadius();
     }
 
+    public int waypointColorFor(final Player player) {
+        return resolveWaypointColor(player);
+    }
+
+    public boolean isWaypointColorInUse(final Player player, final int rgb) {
+        return this.registry.snapshots().stream()
+            .anyMatch(snapshot -> !snapshot.playerId().equals(player.getUniqueId()) && snapshot.waypointColorRgb() == rgb);
+    }
+
+    public void resetWaypointColor(final Player player, final Consumer<Integer> completion) {
+        player.getScheduler().run(this.plugin, scheduledTask -> {
+            player.getPersistentDataContainer().remove(this.waypointColorKey);
+            final int resolvedColor = refreshSnapshotAndDisplays(player);
+            completion.accept(resolvedColor);
+        }, null);
+    }
+
+    public void setWaypointColor(final Player player, final int rgb, final Consumer<Integer> success, final Consumer<Integer> duplicate) {
+        player.getScheduler().run(this.plugin, scheduledTask -> {
+            if (isWaypointColorInUse(player, rgb)) {
+                duplicate.accept(rgb);
+                return;
+            }
+
+            saveWaypointColor(player, rgb);
+            final int resolvedColor = refreshSnapshotAndDisplays(player);
+            success.accept(resolvedColor);
+        }, null);
+    }
+
     public void handleMovement(final Player player, final Location from, final Location to) {
         if (to == null) {
             return;
@@ -163,7 +196,7 @@ public final class LocateBarService {
         }
 
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
-        this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+        this.registry.updateSnapshot(captureSnapshot(player, state.isEnabled()));
 
         refreshTargetForAllRecipients(player.getUniqueId());
         if (state.isEnabled()) {
@@ -173,14 +206,14 @@ public final class LocateBarService {
 
     public void handleStateRefresh(final Player player) {
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
-        this.registry.updateSnapshot(PlayerSnapshot.capture(player, state.isEnabled()));
+        this.registry.updateSnapshot(captureSnapshot(player, state.isEnabled()));
         syncRecipient(player, true);
         refreshTargetForAllRecipients(player.getUniqueId());
     }
 
     public void handleStateRefresh(final Player player, final Location location) {
         final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
-        this.registry.updateSnapshot(PlayerSnapshot.capture(player, location, state.isEnabled()));
+        this.registry.updateSnapshot(captureSnapshot(player, location, state.isEnabled()));
         syncRecipient(player, true);
         refreshTargetForAllRecipients(player.getUniqueId());
     }
@@ -379,5 +412,34 @@ public final class LocateBarService {
 
     private void saveEnabled(final Player player, final boolean enabled) {
         player.getPersistentDataContainer().set(this.enabledKey, PersistentDataType.BYTE, enabled ? (byte) 1 : (byte) 0);
+    }
+
+    private PlayerSnapshot captureSnapshot(final Player player, final boolean enabled) {
+        return PlayerSnapshot.capture(player, enabled, resolveWaypointColor(player));
+    }
+
+    private PlayerSnapshot captureSnapshot(final Player player, final Location location, final boolean enabled) {
+        return PlayerSnapshot.capture(player, location, enabled, resolveWaypointColor(player));
+    }
+
+    private int refreshSnapshotAndDisplays(final Player player) {
+        final PlayerStateRegistry.PlayerRuntimeState state = this.registry.stateFor(player.getUniqueId());
+        final PlayerSnapshot snapshot = captureSnapshot(player, state.isEnabled());
+        this.registry.updateSnapshot(snapshot);
+        syncRecipient(player, true);
+        refreshTargetForAllRecipients(player.getUniqueId());
+        return snapshot.waypointColorRgb();
+    }
+
+    private int resolveWaypointColor(final Player player) {
+        final Integer stored = player.getPersistentDataContainer().get(this.waypointColorKey, PersistentDataType.INTEGER);
+        if (stored != null) {
+            return stored & 0xFFFFFF;
+        }
+        return WaypointColorResolver.colorFor(player.getUniqueId());
+    }
+
+    private void saveWaypointColor(final Player player, final int rgb) {
+        player.getPersistentDataContainer().set(this.waypointColorKey, PersistentDataType.INTEGER, rgb & 0xFFFFFF);
     }
 }

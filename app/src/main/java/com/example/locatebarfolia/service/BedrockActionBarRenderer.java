@@ -1,5 +1,6 @@
 package com.example.locatebarfolia.service;
 
+import com.example.locatebarfolia.i18n.DisplayLanguage;
 import com.example.locatebarfolia.model.PlayerSnapshot;
 import java.util.Comparator;
 import java.util.List;
@@ -15,8 +16,12 @@ public final class BedrockActionBarRenderer {
             .limit(maxTargets)
             .map(target -> formatTarget(recipient, target))
             .reduce((left, right) -> left + " | " + right)
-            .map(message -> "Locate: " + message)
+            .map(message -> actionBarPrefix(recipient.localeTag()) + message)
             .orElse("");
+    }
+
+    private String actionBarPrefix(final String localeTag) {
+        return DisplayLanguage.fromLocaleTag(localeTag) == DisplayLanguage.KOREAN ? "추적: " : "Locate: ";
     }
 
     private String formatTarget(final PlayerSnapshot recipient, final PlayerSnapshot target) {

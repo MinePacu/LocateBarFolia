@@ -55,7 +55,7 @@ class VisibilityEvaluatorTest {
     void rejectsSpectatorsWhenConfigured() {
         assertFalse(this.evaluator.shouldTrack(
             snapshot(UUID.randomUUID(), WORLD, 0.0D, 64.0D, 0.0D, true),
-            new PlayerSnapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, 0.0F, "Target", GameMode.SPECTATOR, true),
+            new PlayerSnapshot(UUID.randomUUID(), WORLD, 10.0D, 64.0D, 0.0D, 0.0F, "en_us", 0xFFFFFF, "Target", GameMode.SPECTATOR, true),
             CONFIG
         ));
     }
@@ -68,6 +68,6 @@ class VisibilityEvaluatorTest {
         final double z,
         final boolean enabled
     ) {
-        return new PlayerSnapshot(playerId, worldId, x, y, z, 0.0F, "Target", GameMode.SURVIVAL, enabled);
+        return new PlayerSnapshot(playerId, worldId, x, y, z, 0.0F, "en_us", 0xFFFFFF, "Target", GameMode.SURVIVAL, enabled);
     }
 }

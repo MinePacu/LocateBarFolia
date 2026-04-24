@@ -12,15 +12,22 @@ public record PlayerSnapshot(
     double y,
     double z,
     float yaw,
+    String localeTag,
+    int waypointColorRgb,
     String name,
     GameMode gameMode,
     boolean locatorEnabled
 ) {
-    public static PlayerSnapshot capture(final Player player, final boolean locatorEnabled) {
-        return capture(player, player.getLocation(), locatorEnabled);
+    public static PlayerSnapshot capture(final Player player, final boolean locatorEnabled, final int waypointColorRgb) {
+        return capture(player, player.getLocation(), locatorEnabled, waypointColorRgb);
     }
 
-    public static PlayerSnapshot capture(final Player player, final Location location, final boolean locatorEnabled) {
+    public static PlayerSnapshot capture(
+        final Player player,
+        final Location location,
+        final boolean locatorEnabled,
+        final int waypointColorRgb
+    ) {
         final var world = location.getWorld();
         return new PlayerSnapshot(
             player.getUniqueId(),
@@ -29,6 +36,8 @@ public record PlayerSnapshot(
             location.getY(),
             location.getZ(),
             location.getYaw(),
+            player.locale().toLanguageTag(),
+            waypointColorRgb,
             player.getName(),
             player.getGameMode(),
             locatorEnabled
